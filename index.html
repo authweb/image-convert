@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Image Converter</title>
+	<script src="https://cdn.tailwindcss.com"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+	<style>
+		/* Дополнительные стили */
+		#dropZone {
+			border: 2px dashed #ccc;
+			border-radius: 10px;
+			transition: border-color 0.3s ease;
+		}
+
+		#dropZone.drag-over {
+			border-color: #007BFF;
+		}
+
+		.fade-out {
+			animation: fadeOut 0.3s ease-out;
+		}
+
+		@keyframes fadeOut {
+			from {
+				opacity: 1;
+			}
+
+			to {
+				opacity: 0;
+			}
+		}
+
+		body {
+			transition: background-color 0.3s, color 0.3s;
+		}
+	</style>
+</head>
+
+<body
+	class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex items-center justify-center min-h-screen">
+	<!-- Кнопка переключения темы -->
+	<button id="themeToggle" class="fixed top-4 right-4 p-2 bg-gray-200 dark:bg-gray-700 rounded-full shadow-lg">
+		🌙
+	</button>
+
+	<div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-2xl">
+		<h1 class="text-2xl font-bold text-center mb-6">Image Converter by <a href="https://authweb.ru"
+				target="_blank">Authweb</a></h1>
+
+		<!-- Drag-and-Drop Zone -->
+		<div id="dropZone" class="p-6 text-center cursor-pointer border-2 border-dashed border-gray-300 rounded-lg">
+			<p class="text-gray-600 dark:text-gray-400">Перетащите изображения сюда или</p>
+			<label for="imageInput" class="text-blue-500 underline cursor-pointer">выберите файлы</label>
+			<input type="file" id="imageInput" accept="image/*" multiple class="hidden">
+		</div>
+
+		<!-- Список загруженных изображений -->
+		<div id="imageList" class="mt-6 space-y-4">
+			<!-- Здесь будут отображаться загруженные изображения -->
+		</div>
+
+		<!-- Выбор формата -->
+		<div class="mt-6">
+			<label for="formatSelect" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Формат:</label>
+			<select id="formatSelect"
+				class="mt-1 block w-full p-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600">
+				<option value="png">PNG</option>
+				<option value="jpeg">JPG</option>
+			</select>
+		</div>
+
+		<!-- Прогресс конвертации -->
+		<div id="progressContainer" class="mt-4 hidden">
+			<div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+				<div id="progressBar" class="bg-blue-500 h-2.5 rounded-full" style="width: 0%"></div>
+			</div>
+			<p id="progressText" class="text-sm text-gray-600 dark:text-gray-400 mt-2">0% завершено</p>
+		</div>
+
+		<!-- Кнопки конвертации -->
+		<div class="mt-6 flex gap-4">
+			<button id="convertAllButton"
+				class="flex-1 bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700">
+				Конвертировать все
+			</button>
+			<button id="convertSelectedButton"
+				class="flex-1 bg-green-500 text-white p-2 rounded-md hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700">
+				Конвертировать выбранные
+			</button>
+		</div>
+	</div>
+
+	<script src="converter.js"></script>
+</body>
+
+</html>
