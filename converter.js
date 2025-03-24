@@ -39,19 +39,16 @@ document.addEventListener('DOMContentLoaded', function () {
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
     themeToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
   });
-  
-  // Проверяем существование элементов перед добавлением обработчиков
-  if (formatSelect && qualityContainer && qualitySlider && qualityValue) {
-      formatSelect.addEventListener('change', function () {
-          qualityContainer.classList.toggle('hidden', this.value !== 'jpeg');
-      });
-  
-      qualitySlider.addEventListener('input', function () {
-          qualityValue.textContent = `${this.value}%`;
-      });
-  } else {
-      console.error('Не найдены необходимые элементы для настроек качества');
-  }
+
+  // Показываем настройку качества только для JPG
+  formatSelect.addEventListener('change', function () {
+    qualityContainer.classList.toggle('hidden', this.value !== 'jpeg');
+  });
+
+  // Обновляем значение качества
+  qualitySlider.addEventListener('input', function () {
+    qualityValue.textContent = `${this.value}%`;
+  });
 
   // Drag-and-drop
   ['dragenter', 'dragover', 'dragleave', 'drop'].forEach((eventName) => {
@@ -63,20 +60,12 @@ document.addEventListener('DOMContentLoaded', function () {
     e.stopPropagation();
   }
 
-  ['dragenter', 'dragover'].forEach((eventName) => {
-    dropZone.addEventListener(eventName, highlight, false);
-  });
-
-  ['dragleave', 'drop'].forEach((eventName) => {
-    dropZone.addEventListener(eventName, unhighlight, false);
-  });
-
-  function highlight() {
-    dropZone.classList.add('drag-over');
+  highlightDropZone() {
+    this.elements.dropZone.classList.add('drag-over');
   }
 
-  function unhighlight() {
-    dropZone.classList.remove('drag-over');
+  unhighlightDropZone() {
+    this.elements.dropZone.classList.remove('drag-over');
   }
 
   dropZone.addEventListener('drop', function (e) {
@@ -90,145 +79,155 @@ document.addEventListener('DOMContentLoaded', function () {
     handleFiles(this.files);
   });
 
-// Добавьте этот обработчик после других обработчиков кнопок
-clearAllButton.addEventListener('click', function() {
-    // Показываем подтверждение перед очисткой
-    Swal.fire({
-        title: 'Очистить все?',
-        text: 'Вы уверены, что хотите удалить все загруженные изображения?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Да, очистить',
-        cancelButtonText: 'Отмена',
-        confirmButtonColor: '#d33',
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // Очищаем массив изображений
-            images = [];
-            
-            // Обновляем список (он станет пустым)
-            renderImageList();
-            
-            // Показываем состояние "список пуст"
-            emptyState.classList.remove('hidden');
-            
-            // Сбрасываем поле выбора файлов
-            imageInput.value = '';
-            
-            Swal.fire('Очищено!', 'Все изображения удалены', 'success');
-        }
-    });
-});
-
-  // Обработка загруженных файлов
-  function handleFiles(files) {
+  async handleFiles(files) {
     if (!files.length) return;
 
-    emptyState.classList.add('hidden');
+    this.elements.emptyState.classList.add('hidden');
+    const validFiles = Array.from(files).filter((file) => file.type.startsWith('image/'));
 
-    for (const file of files) {
-      if (!file.type.startsWith('image/')) {
-        Swal.fire('Ошибка!', `Файл "${file.name}" не является изображением`, 'error');
-        continue;
-      }
-
-      const reader = new FileReader();
-      reader.onload = function (event) {
-        const img = new Image();
-        img.onload = function () {
-          images.push({
-            file,
-            src: event.target.result,
-            checked: true,
-          });
-          renderImageList();
-        };
-        img.src = event.target.result;
-      };
-      reader.readAsDataURL(file);
+    if (validFiles.length !== files.length) {
+      this.showToast('Некоторые файлы не являются изображениями', 'warning');
     }
+
+    for (const file of validFiles) {
+      try {
+        const imgData = await this.readFileAsImage(file);
+        this.images.push({
+          file,
+          src: imgData.src,
+          name: file.name,
+          size: file.size,
+          width: imgData.width,
+          height: imgData.height,
+        });
+      } catch (error) {
+        console.error('Ошибка загрузки изображения:', error);
+      }
+    }
+
+    this.renderImageList();
   }
 
-  // Отображение списка изображений
-  function renderImageList() {
-    if (images.length === 0) {
-      emptyState.classList.remove('hidden');
-      imageList.innerHTML = '';
+  readFileAsImage(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () =>
+          resolve({
+            src: event.target.result,
+            width: img.width,
+            height: img.height,
+          });
+        img.onerror = reject;
+        img.src = event.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  renderImageList() {
+    if (this.images.length === 0) {
+      this.elements.emptyState.classList.remove('hidden');
+      this.elements.imageList.innerHTML = '';
       return;
     }
 
-    imageList.innerHTML = images
+    this.elements.emptyState.classList.add('hidden');
+    this.elements.imageList.innerHTML = this.images
       .map(
         (img, index) => `
-      <div class="file-card flex items-center gap-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg mb-3">
-        <input type="checkbox" ${img.checked ? 'checked' : ''} 
-               onchange="window.toggleImage(${index})" 
-               class="form-checkbox h-5 w-5 text-blue-500">
-        <img src="${img.src}" alt="${img.file.name}" class="w-16 h-16 object-cover rounded-lg">
-        <div class="flex-1 truncate">
-          <p class="text-gray-700 dark:text-gray-300 truncate">${img.file.name}</p>
-          <p class="text-xs text-gray-500">${(img.file.size / 1024).toFixed(2)} KB</p>
-        </div>
-        <button onclick="window.removeImage(${index})" 
-                class="text-red-500 hover:text-red-700 p-2 rounded-full">
-          <i class="fas fa-trash-alt"></i>
-        </button>
-      </div>
-    `,
+                <div class="file-card flex items-center gap-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg mb-3">
+                    <img src="${img.src}" alt="${
+          img.name
+        }" class="w-16 h-16 object-cover rounded-lg">
+                    <div class="flex-1 truncate">
+                        <p class="text-gray-700 dark:text-gray-300 truncate">${img.name}</p>
+                        <p class="text-xs text-gray-500">${this.formatFileSize(img.size)} • ${
+          img.width
+        }×${img.height}</p>
+                    </div>
+                    <button onclick="imageConverter.removeSingleImage(${index})" 
+                            class="text-red-500 hover:text-red-700 p-2 rounded-full">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            `,
       )
       .join('');
   }
 
-  // Очистка всех изображений
-  clearAllButton.addEventListener('click', function () {
-    images = [];
-    renderImageList();
-    emptyState.classList.remove('hidden');
-  });
+  formatFileSize(bytes) {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
 
-  // Конвертация всех изображений
-  convertAllButton.addEventListener('click', function () {
-    if (images.length === 0) {
-      Swal.fire('Ошибка!', 'Пожалуйста, загрузите изображения', 'error');
+  removeSingleImage(index) {
+    this.images.splice(index, 1);
+    this.renderImageList();
+    if (this.images.length === 0) {
+      this.elements.emptyState.classList.remove('hidden');
+    }
+  }
+
+  clearAllImages() {
+    Swal.fire({
+      title: 'Очистить все?',
+      text: 'Вы уверены, что хотите удалить все загруженные изображения?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Да, очистить',
+      cancelButtonText: 'Отмена',
+      confirmButtonColor: '#d33',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.images = [];
+        this.renderImageList();
+        this.elements.emptyState.classList.remove('hidden');
+        this.elements.imageInput.value = '';
+        this.showToast('Все изображения удалены', 'success');
+      }
+    });
+  }
+
+  convertAll() {
+    if (this.images.length === 0) {
+      this.showToast('Пожалуйста, загрузите изображения', 'error');
       return;
     }
-    convertImages(images);
-  });
+    this.convertImages(this.images);
+  }
 
-  // Конвертация выбранных изображений
-  convertSelectedButton.addEventListener('click', function () {
-    const selectedImages = images.filter((img) => img.checked);
-    if (selectedImages.length === 0) {
-      Swal.fire('Ошибка!', 'Пожалуйста, выберите изображения', 'error');
+  async downloadAll() {
+    if (this.images.length === 0) {
+      this.showToast('Нет изображений для скачивания', 'error');
       return;
     }
-    convertImages(selectedImages);
-  });
+    await this.convertImages(this.images, true);
+  }
 
-  // Конвертация изображений
-  async function convertImages(imagesToConvert) {
-    const format = formatSelect.value;
-    const quality = format === 'jpeg' ? qualitySlider.value / 100 : 1;
+  async convertImages(imagesToConvert, forceDownload = false) {
+    const format = this.selectedFormat;
+    const quality = format === 'jpeg' ? this.elements.qualitySlider.value / 100 : 1;
     const mimeType = `image/${format}`;
 
-    progressContainer.classList.remove('hidden');
-    progressBar.style.width = '0%';
-    progressText.textContent = '0% завершено';
+    this.showProgress(0, 'Подготовка к конвертации...');
 
     try {
-      if (imagesToConvert.length > 5) {
+      if (imagesToConvert.length > 1 || forceDownload) {
         const zip = new JSZip();
-        const folder = zip.folder('Converted_Images_Authweb_Pack');
+        const folder = zip.folder('converted_images');
 
         for (let i = 0; i < imagesToConvert.length; i++) {
           const img = imagesToConvert[i];
           const dataURL = await convertImageToDataURL(img.src, mimeType, quality);
           const blob = dataURLtoBlob(dataURL);
-          folder.file(`Convert_Image_Authweb_${i + 1}.${format}`, blob);
+          folder.file(`image_${i + 1}.${format}`, blob);
 
           const progress = Math.round(((i + 1) / imagesToConvert.length) * 100);
-          progressBar.style.width = `${progress}%`;
-          progressText.textContent = `${progress}% завершено`;
+          this.showProgress(progress, `Обработка ${i + 1} из ${imagesToConvert.length}`);
         }
 
         const content = await zip.generateAsync({ type: 'blob' });
@@ -239,7 +238,7 @@ clearAllButton.addEventListener('click', function() {
           const dataURL = await convertImageToDataURL(img.src, mimeType, quality);
           const link = document.createElement('a');
           link.href = dataURL;
-          link.download = `Convert_Image_Authweb_${i + 1}.${format}`;
+          link.download = `converted_${i + 1}.${format}`;
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
@@ -252,31 +251,30 @@ clearAllButton.addEventListener('click', function() {
 
       Swal.fire('Готово!', 'Изображения успешно конвертированы', 'success');
     } catch (error) {
-      Swal.fire('Ошибка!', 'Произошла ошибка при конвертации', 'error');
-      console.error(error);
+      console.error('Ошибка конвертации:', error);
+      this.showToast('Произошла ошибка при конвертации', 'error');
     } finally {
-      progressContainer.classList.add('hidden');
+      this.hideProgress();
     }
   }
 
-  // Конвертация изображения в Data URL
-  function convertImageToDataURL(src, mimeType, quality) {
+  convertImageToDataURL(src, mimeType, quality) {
     return new Promise((resolve) => {
       const img = new Image();
-      img.onload = function () {
+      img.onload = () => {
         const canvas = document.createElement('canvas');
         canvas.width = img.width;
         canvas.height = img.height;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0);
         resolve(canvas.toDataURL(mimeType, quality));
+        canvas.remove();
       };
       img.src = src;
     });
   }
 
-  // Преобразование Data URL в Blob
-  function dataURLtoBlob(dataURL) {
+  dataURLtoBlob(dataURL) {
     const byteString = atob(dataURL.split(',')[1]);
     const mimeString = dataURL.split(',')[0].split(':')[1].split(';')[0];
     const ab = new ArrayBuffer(byteString.length);
@@ -287,20 +285,53 @@ clearAllButton.addEventListener('click', function() {
     return new Blob([ab], { type: mimeString });
   }
 
-  // Глобальные функции для работы с изображениями
-  window.toggleImage = function (index) {
-    images[index].checked = !images[index].checked;
-    renderImageList();
-  };
+  downloadFile(dataURL, filename) {
+    const link = document.createElement('a');
+    link.href = dataURL;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
 
-  window.removeImage = function (index) {
-    images.splice(index, 1);
-    renderImageList();
-    if (images.length === 0) {
-      emptyState.classList.remove('hidden');
+  showProgress(percent, message) {
+    this.elements.progressContainer.classList.remove('hidden');
+    this.elements.progressBar.style.width = `${percent}%`;
+    this.elements.progressText.textContent = `${percent}%`;
+    if (message) {
+      document.querySelector('#progressContainer p').textContent = message;
     }
-  };
+  }
 
-  // Инициализация
-  initTheme();
+  hideProgress() {
+    this.elements.progressContainer.classList.add('hidden');
+  }
+
+  showToast(message, type = 'success') {
+    const icon = {
+      success: 'check-circle',
+      error: 'exclamation-triangle',
+      warning: 'exclamation-circle',
+    }[type];
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+            <i class="fas fa-${icon} mr-2"></i>
+            <span>${message}</span>
+        `;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+      toast.classList.add('fade-out');
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  }
+}
+
+// Инициализация при загрузке страницы
+let imageConverter;
+document.addEventListener('DOMContentLoaded', () => {
+  imageConverter = new ImageConverter();
+  window.imageConverter = imageConverter; // Делаем глобально доступным для обработчиков в HTML
 });
