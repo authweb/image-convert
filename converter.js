@@ -43,20 +43,25 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     setupEventListeners() {
-      // Переключение темы
-      this.elements.themeToggle.addEventListener('click', () => this.toggleTheme());
+      // Проверяем элементы перед добавлением обработчиков
+      if (this.elements.themeToggle) {
+        this.elements.themeToggle.addEventListener('click', () => this.toggleTheme());
+      }
 
-      // Настройки формата и качества
-      this.elements.formatSelect.addEventListener('change', () => {
-        this.elements.qualityContainer.classList.toggle(
-          'hidden',
-          this.elements.formatSelect.value !== 'jpeg',
-        );
-      });
+      if (this.elements.formatSelect && this.elements.qualityContainer) {
+        this.elements.formatSelect.addEventListener('change', () => {
+          this.elements.qualityContainer.classList.toggle(
+            'hidden', 
+            this.elements.formatSelect.value !== 'jpeg'
+          );
+        });
+      }
 
-      this.elements.qualitySlider.addEventListener('input', () => {
-        this.elements.qualityValue.textContent = `${this.elements.qualitySlider.value}%`;
-      });
+      if (this.elements.qualitySlider && this.elements.qualityValue) {
+        this.elements.qualitySlider.addEventListener('input', () => {
+          this.elements.qualityValue.textContent = `${this.elements.qualitySlider.value}%`;
+        });
+      }
 
       // Drag and drop
       ['dragenter', 'dragover', 'dragleave', 'drop'].forEach((eventName) => {
@@ -72,13 +77,16 @@ document.addEventListener('DOMContentLoaded', function () {
       });
 
       this.elements.dropZone.addEventListener('drop', (e) => this.handleDrop(e));
-      this.elements.imageInput.addEventListener('change', () =>
-        this.handleFiles(this.elements.imageInput.files),
-      );
+      this.elements.imageInput.addEventListener('change', () => this.handleFiles(this.elements.imageInput.files));
 
-      // Кнопки действий
-      this.elements.convertAllButton.addEventListener('click', () => this.convertAll());
-      this.elements.clearAllButton.addEventListener('click', () => this.clearAllImages());
+      // Кнопки с проверкой
+      if (this.elements.convertAllButton) {
+        this.elements.convertAllButton.addEventListener('click', () => this.convertAll());
+      }
+
+      if (this.elements.clearAllButton) {
+        this.elements.clearAllButton.addEventListener('click', () => this.clearAllImages());
+      }
     }
 
     toggleTheme() {
