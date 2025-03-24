@@ -218,7 +218,7 @@ clearAllButton.addEventListener('click', function() {
     try {
       if (imagesToConvert.length > 5) {
         const zip = new JSZip();
-        const folder = zip.folder('converted_images');
+        const folder = zip.folder('Converted_Images_Authweb_Pack');
 
         for (let i = 0; i < imagesToConvert.length; i++) {
           const img = imagesToConvert[i];
@@ -239,7 +239,7 @@ clearAllButton.addEventListener('click', function() {
           const dataURL = await convertImageToDataURL(img.src, mimeType, quality);
           const link = document.createElement('a');
           link.href = dataURL;
-          link.download = `converted_${i + 1}.${format}`;
+          link.download = `Convert_Image_Authweb_${i + 1}.${format}`;
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
