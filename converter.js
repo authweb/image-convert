@@ -39,16 +39,19 @@ document.addEventListener('DOMContentLoaded', function () {
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
     themeToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
   });
-
-  // Показываем настройку качества только для JPG
-  formatSelect.addEventListener('change', function () {
-    qualityContainer.classList.toggle('hidden', this.value !== 'jpeg');
-  });
-
-  // Обновляем значение качества
-  qualitySlider.addEventListener('input', function () {
-    qualityValue.textContent = `${this.value}%`;
-  });
+  
+  // Проверяем существование элементов перед добавлением обработчиков
+  if (formatSelect && qualityContainer && qualitySlider && qualityValue) {
+      formatSelect.addEventListener('change', function () {
+          qualityContainer.classList.toggle('hidden', this.value !== 'jpeg');
+      });
+  
+      qualitySlider.addEventListener('input', function () {
+          qualityValue.textContent = `${this.value}%`;
+      });
+  } else {
+      console.error('Не найдены необходимые элементы для настроек качества');
+  }
 
   // Drag-and-drop
   ['dragenter', 'dragover', 'dragleave', 'drop'].forEach((eventName) => {
