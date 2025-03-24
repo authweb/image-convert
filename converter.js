@@ -90,6 +90,36 @@ document.addEventListener('DOMContentLoaded', function () {
     handleFiles(this.files);
   });
 
+// Добавьте этот обработчик после других обработчиков кнопок
+clearAllButton.addEventListener('click', function() {
+    // Показываем подтверждение перед очисткой
+    Swal.fire({
+        title: 'Очистить все?',
+        text: 'Вы уверены, что хотите удалить все загруженные изображения?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Да, очистить',
+        cancelButtonText: 'Отмена',
+        confirmButtonColor: '#d33',
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Очищаем массив изображений
+            images = [];
+            
+            // Обновляем список (он станет пустым)
+            renderImageList();
+            
+            // Показываем состояние "список пуст"
+            emptyState.classList.remove('hidden');
+            
+            // Сбрасываем поле выбора файлов
+            imageInput.value = '';
+            
+            Swal.fire('Очищено!', 'Все изображения удалены', 'success');
+        }
+    });
+});
+
   // Обработка загруженных файлов
   function handleFiles(files) {
     if (!files.length) return;
