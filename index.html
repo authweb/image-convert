@@ -151,14 +151,35 @@
 			</div>
 		</div>
 
-		<!-- Выбор формата -->
-		<div class="mt-6">
-			<label for="formatSelect" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Формат:</label>
-			<select id="formatSelect"
-				class="mt-1 block w-full p-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600">
-				<option value="png">PNG</option>
-				<option value="jpeg">JPG</option>
-			</select>
+		<!-- Настройки конвертации -->
+		<div class="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-lg mb-6">
+			<h3 class="font-medium mb-3 flex items-center">
+				<i class="fas fa-cog mr-2 text-blue-500"></i> Настройки конвертации
+			</h3>
+
+			<div class="space-y-4">
+				<!-- Выбор формата -->
+				<div>
+					<label for="formatSelect" class="block text-sm font-medium mb-1 flex items-center">
+						<i class="fas fa-file-image mr-2 text-blue-400"></i> Формат результата:
+					</label>
+					<select id="formatSelect"
+						class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700">
+						<option value="png">PNG (без потерь качества)</option>
+						<option value="jpeg">JPG (меньший размер)</option>
+					</select>
+				</div>
+
+				<!-- Добавьте этот блок для настройки качества -->
+				<div id="qualityContainer" class="hidden">
+					<label for="qualitySlider" class="block text-sm font-medium mb-1 flex items-center">
+						<i class="fas fa-sliders-h mr-2 text-blue-400"></i> Качество JPG:
+						<span id="qualityValue" class="ml-auto font-bold">80%</span>
+					</label>
+					<input type="range" id="qualitySlider" min="10" max="100" value="80"
+						class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+				</div>
+			</div>
 		</div>
 
 		<!-- Прогресс конвертации -->
