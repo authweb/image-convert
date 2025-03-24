@@ -224,7 +224,7 @@ clearAllButton.addEventListener('click', function() {
           const img = imagesToConvert[i];
           const dataURL = await convertImageToDataURL(img.src, mimeType, quality);
           const blob = dataURLtoBlob(dataURL);
-          folder.file(`image_${i + 1}.${format}`, blob);
+          folder.file(`Convert_Image_Authweb_${i + 1}.${format}`, blob);
 
           const progress = Math.round(((i + 1) / imagesToConvert.length) * 100);
           progressBar.style.width = `${progress}%`;
