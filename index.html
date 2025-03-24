@@ -10,15 +10,32 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 	<style>
-		/* Дополнительные стили */
+		/* Улучшенные стили */
 		#dropZone {
-			border: 2px dashed #ccc;
-			border-radius: 10px;
-			transition: border-color 0.3s ease;
+			border: 2px dashed #3b82f6;
+			border-radius: 12px;
+			transition: all 0.3s ease;
+			background-color: rgba(59, 130, 246, 0.05);
 		}
 
 		#dropZone.drag-over {
-			border-color: #007BFF;
+			border-color: #10b981;
+			background-color: rgba(16, 185, 129, 0.1);
+			transform: scale(1.01);
+		}
+
+		#dropZone:hover {
+			border-color: #2563eb;
+		}
+
+		.file-card {
+			transition: all 0.3s ease;
+			border-left: 4px solid #3b82f6;
+		}
+
+		.file-card:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 		}
 
 		.fade-out {
@@ -38,59 +55,164 @@
 		body {
 			transition: background-color 0.3s, color 0.3s;
 		}
+
+		.tooltip {
+			position: relative;
+			display: inline-block;
+		}
+
+		.tooltip .tooltiptext {
+			visibility: hidden;
+			width: 200px;
+			background-color: #333;
+			color: #fff;
+			text-align: center;
+			border-radius: 6px;
+			padding: 5px;
+			position: absolute;
+			z-index: 1;
+			bottom: 125%;
+			left: 50%;
+			transform: translateX(-50%);
+			opacity: 0;
+			transition: opacity 0.3s;
+		}
+
+		.tooltip:hover .tooltiptext {
+			visibility: visible;
+			opacity: 1;
+		}
+
+		@media (max-width: 768px) {
+			.converter-buttons {
+				flex-direction: column;
+			}
+
+			.converter-buttons button {
+				width: 100%;
+			}
+		}
 	</style>
 </head>
 
 <body
-	class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex items-center justify-center min-h-screen">
+	class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 flex items-center justify-center min-h-screen p-4">
 	<!-- Кнопка переключения темы -->
-	<button id="themeToggle" class="fixed top-4 right-4 p-2 bg-gray-200 dark:bg-gray-700 rounded-full shadow-lg">
-		🌙
+	<button id="themeToggle"
+		class="fixed top-4 right-4 p-3 bg-white dark:bg-gray-700 rounded-full shadow-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-all">
+		<span id="themeIcon">🌙</span>
 	</button>
 
-	<div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-2xl">
-		<h1 class="text-2xl font-bold text-center mb-6">Image Converter by <a href="https://authweb.ru"
-				target="_blank">Authweb</a></h1>
+	<div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-xl w-full max-w-3xl">
+		<!-- Заголовок с логотипом -->
+		<div class="flex items-center justify-center mb-6 space-x-3">
+			<i class="fas fa-exchange-alt text-blue-500 text-2xl"></i>
+			<h1 class="text-2xl font-bold text-center">
+				Конвертер изображений от <a href="https://authweb.ru" target="_blank"
+					class="text-blue-500 hover:text-blue-600 dark:hover:text-blue-400">Authweb</a>
+			</h1>
+		</div>
 
-		<!-- Drag-and-Drop Zone -->
-		<div id="dropZone" class="p-6 text-center cursor-pointer border-2 border-dashed border-gray-300 rounded-lg">
-			<p class="text-gray-600 dark:text-gray-400">Перетащите изображения сюда или</p>
-			<label for="imageInput" class="text-blue-500 underline cursor-pointer">выберите файлы</label>
+		<!-- Информационная карточка -->
+		<div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
+			<div class="flex items-start">
+				<i class="fas fa-info-circle text-blue-500 mt-1 mr-3"></i>
+				<div>
+					<h3 class="font-medium">Как пользоваться конвертером?</h3>
+					<ol class="list-decimal list-inside text-sm mt-2 space-y-1">
+						<li>Загрузите изображения (перетащите или выберите файлы)</li>
+						<li>Выберите формат для конвертации</li>
+						<li>Нажмите кнопку "Конвертировать"</li>
+					</ol>
+				</div>
+			</div>
+		</div>
+
+		<!-- Улучшенная зона загрузки -->
+		<div id="dropZone"
+			class="p-8 text-center cursor-pointer border-2 border-dashed rounded-lg flex flex-col items-center justify-center space-y-3 mb-6">
+			<i class="fas fa-cloud-upload-alt text-4xl text-blue-400"></i>
+			<p class="text-lg font-medium">Перетащите изображения сюда</p>
+			<p class="text-gray-500 dark:text-gray-400 text-sm">или</p>
+			<label for="imageInput"
+				class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md cursor-pointer transition-colors inline-flex items-center">
+				<i class="fas fa-folder-open mr-2"></i> Выберите файлы
+			</label>
 			<input type="file" id="imageInput" accept="image/*" multiple class="hidden">
+			<p class="text-xs text-gray-400 mt-2">Поддерживаемые форматы: JPG, PNG, GIF</p>
 		</div>
 
 		<!-- Список загруженных изображений -->
-		<div id="imageList" class="mt-6 space-y-4">
+		<div id="imageList" class="space-y-3 mb-6">
 			<!-- Здесь будут отображаться загруженные изображения -->
+			<div id="emptyState" class="text-center py-8 text-gray-400">
+				<i class="fas fa-images text-3xl mb-2"></i>
+				<p>Загруженные изображения появятся здесь</p>
+			</div>
 		</div>
 
-		<!-- Выбор формата -->
-		<div class="mt-6">
-			<label for="formatSelect" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Формат:</label>
-			<select id="formatSelect"
-				class="mt-1 block w-full p-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600">
-				<option value="png">PNG</option>
-				<option value="jpeg">JPG</option>
-			</select>
+		<!-- Настройки конвертации -->
+		<div class="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-lg mb-6">
+			<h3 class="font-medium mb-3 flex items-center">
+				<i class="fas fa-cog mr-2 text-blue-500"></i> Настройки конвертации
+			</h3>
+
+			<div class="space-y-4">
+				<!-- Выбор формата -->
+				<div>
+					<label for="formatSelect" class="block text-sm font-medium mb-1 flex items-center">
+						<i class="fas fa-file-image mr-2 text-blue-400"></i> Формат результата:
+					</label>
+					<select id="formatSelect"
+						class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700">
+						<option value="png">PNG (без потерь качества)</option>
+						<option value="jpeg">JPG (меньший размер)</option>
+					</select>
+				</div>
+
+				<!-- Качество для JPG -->
+				<div id="qualityContainer" class="hidden">
+					<label for="qualitySlider" class="block text-sm font-medium mb-1 flex items-center">
+						<i class="fas fa-sliders-h mr-2 text-blue-400"></i> Качество JPG:
+						<span id="qualityValue" class="ml-auto font-bold">80%</span>
+					</label>
+					<input type="range" id="qualitySlider" min="10" max="100" value="80"
+						class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+				</div>
+			</div>
 		</div>
 
 		<!-- Прогресс конвертации -->
-		<div id="progressContainer" class="mt-4 hidden">
-			<div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-				<div id="progressBar" class="bg-blue-500 h-2.5 rounded-full" style="width: 0%"></div>
+		<div id="progressContainer" class="hidden mb-6">
+			<div class="flex items-center justify-between mb-1">
+				<span class="text-sm font-medium flex items-center">
+					<i class="fas fa-sync-alt mr-2 animate-spin"></i> Идет конвертация...
+				</span>
+				<span id="progressText" class="text-sm font-bold">0%</span>
 			</div>
-			<p id="progressText" class="text-sm text-gray-600 dark:text-gray-400 mt-2">0% завершено</p>
+			<div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+				<div id="progressBar" class="bg-blue-500 h-2.5 rounded-full transition-all duration-300"
+					style="width: 0%">
+				</div>
+			</div>
 		</div>
 
 		<!-- Кнопки конвертации -->
-		<div class="mt-6 flex gap-4">
+		<div class="converter-buttons flex gap-3">
 			<button id="convertAllButton"
-				class="flex-1 bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700">
-				Конвертировать все
+				class="flex-1 bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-md transition-colors flex items-center justify-center space-x-2">
+				<i class="fas fa-sync-alt"></i>
+				<span>Конвертировать все</span>
 			</button>
 			<button id="convertSelectedButton"
-				class="flex-1 bg-green-500 text-white p-2 rounded-md hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700">
-				Конвертировать выбранные
+				class="flex-1 bg-green-500 hover:bg-green-600 text-white p-3 rounded-md transition-colors flex items-center justify-center space-x-2">
+				<i class="fas fa-check-circle"></i>
+				<span>Конвертировать выбранные</span>
+			</button>
+			<button id="clearAllButton"
+				class="flex-1 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 p-3 rounded-md transition-colors flex items-center justify-center space-x-2">
+				<i class="fas fa-trash-alt"></i>
+				<span>Очистить все</span>
 			</button>
 		</div>
 	</div>

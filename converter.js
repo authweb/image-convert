@@ -48,6 +48,21 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
+  // Показываем настройку качества только для JPG
+  const qualityContainer = document.getElementById('qualityContainer');
+
+  formatSelect.addEventListener('change', function () {
+    qualityContainer.classList.toggle('hidden', this.value !== 'jpeg');
+  });
+
+  // Обновляем значение качества
+  const qualitySlider = document.getElementById('qualitySlider');
+  const qualityValue = document.getElementById('qualityValue');
+
+  qualitySlider.addEventListener('input', function () {
+    qualityValue.textContent = `${this.value}%`;
+  });
+
   // Drag-and-drop
   dropZone.addEventListener('dragover', function (e) {
     e.preventDefault();
